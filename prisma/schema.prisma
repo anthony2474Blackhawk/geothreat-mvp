@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Country {
+  id                String                @id @default(cuid())
+  code              String                @unique
+  name              String
+  region            String
+  threatAssessments ThreatAssessment[]
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  @@index([region])
+}
+
+model ThreatAssessment {
+  id          String   @id @default(cuid())
+  countryId   String
+  country     Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  threatLevel Int      @default(0)
+  score       Float    @default(0.0)
+  metrics     Metric[]
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([countryId])
+  @@index([threatLevel])
+}
+
+model Metric {
+  id                  String           @id @default(cuid())
+  threatAssessmentId  String
+  threatAssessment    ThreatAssessment @relation(fields: [threatAssessmentId], references: [id], onDelete: Cascade)
+  category            String
+  value               Float
+  description         String?
+  isDemo              Boolean          @default(true)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  @@index([threatAssessmentId])
+  @@index([category])
+}
